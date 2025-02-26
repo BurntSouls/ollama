@@ -800,11 +800,13 @@ type displayResponseState struct {
 
 func displayResponse(content string, wordWrap bool, state *displayResponseState) {
 	termWidth, _, _ := term.GetSize(int(os.Stdout.Fd()))
+	colorCode := "\033[34m"
+	resetCode := "\033[0m"
 	if wordWrap && termWidth >= 10 {
 		for _, ch := range content {
 			if state.lineLength+1 > termWidth-5 {
 				if runewidth.StringWidth(state.wordBuffer) > termWidth-10 {
-					fmt.Printf("%s%c", state.wordBuffer, ch)
+					fmt.Printf("%s%s%c%s", colorCode, state.wordBuffer, ch, resetCode)
 					state.wordBuffer = ""
 					state.lineLength = 0
 					continue
@@ -816,12 +818,12 @@ func displayResponse(content string, wordWrap bool, state *displayResponseState)
 					fmt.Printf("\x1b[%dD", a)
 				}
 				fmt.Printf("\x1b[K\n")
-				fmt.Printf("%s%c", state.wordBuffer, ch)
+				fmt.Printf("%s%s%c%s", colorCode, state.wordBuffer, ch, resetCode)
 				chWidth := runewidth.RuneWidth(ch)
 
 				state.lineLength = runewidth.StringWidth(state.wordBuffer) + chWidth
 			} else {
-				fmt.Print(string(ch))
+				fmt.Printf("%s%c%s", colorCode, ch, resetCode)
 				state.lineLength += runewidth.RuneWidth(ch)
 				if runewidth.RuneWidth(ch) >= 2 {
 					state.wordBuffer = ""
@@ -839,7 +841,7 @@ func displayResponse(content string, wordWrap bool, state *displayResponseState)
 			}
 		}
 	} else {
-		fmt.Printf("%s%s", state.wordBuffer, content)
+		fmt.Printf("%s%s%s%s", colorCode, state.wordBuffer, content, resetCode)
 		if len(state.wordBuffer) > 0 {
 			state.wordBuffer = ""
 		}
